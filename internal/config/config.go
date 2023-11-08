@@ -7,20 +7,20 @@ import (
 )
 
 type Config struct {
-	DatabaseDSN string `required:"true"`
+	DatabaseDSN string `yaml:"databaseDSN" required:"true"`
 	Nats        struct {
-		Host    string `required:"true"`
-		Port    string `required:"true"`
-		Cluster string `required:"true"`
-		Client  string `required:"true"`
-		Topic   string `required:"true"`
-	} `required:"true" toml:"nats" yaml:"nats"`
+		Host    string `yaml:"host" required:"true"`
+		Port    string `yaml:"port" required:"true"`
+		Cluster string `yaml:"cluster" required:"true"`
+		Client  string `yaml:"client" required:"true"`
+		Topic   string `yaml:"topic" required:"true"`
+	} `required:"true" yaml:"nats"`
 }
 
 func GetConfig() (*Config, error) {
-	cfg := &Config{}
+	cfg := Config{}
 	loader := aconfig.LoaderFor(&cfg, aconfig.Config{
-		Files: []string{"config.yml"},
+		Files: []string{"./config.yml"},
 		FileDecoders: map[string]aconfig.FileDecoder{
 			".yml": aconfigyaml.New(),
 		},
@@ -31,5 +31,5 @@ func GetConfig() (*Config, error) {
 		return nil, err
 	}
 
-	return cfg, nil
+	return &cfg, nil
 }

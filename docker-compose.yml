@@ -13,4 +13,5 @@ services:
   nats-streaming:
     image: nats-streaming:latest
     ports:
-      - 4223:4223
+      - 4222:4222
+      - 8222:8222

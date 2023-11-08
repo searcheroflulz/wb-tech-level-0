@@ -3,16 +3,16 @@ package model
 import "time"
 
 type Order struct {
-	OrderUID    string    `json:"order_uid"`
-	TrackNumber string    `json:"track_number"`
-	Entry       string    `json:"entry"`
-	Locale      string    `json:"locale"`
-	CustomerID  string    `json:"customer_id"`
-	DateCreated time.Time `json:"date_created"`
-	OofShard    string    `json:"oof_shard"`
-	Delivery    Delivery
-	Payment     Payment
-	OrderItems  []OrderItem
+	OrderUID    string      `json:"order_uid"`
+	TrackNumber string      `json:"track_number"`
+	Entry       string      `json:"entry"`
+	Locale      string      `json:"locale"`
+	CustomerID  string      `json:"customer_id"`
+	DateCreated time.Time   `json:"date_created"`
+	OofShard    string      `json:"oof_shard"`
+	Delivery    Delivery    `json:"delivery"`
+	Payment     Payment     `json:"payment"`
+	OrderItems  []OrderItem `json:"order_items"`
 }
 
 // Delivery структура для доставки

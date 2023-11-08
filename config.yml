@@ -1,7 +1,8 @@
-DatabaseDSN: "postgres://postgres:postgres@localhost:5432/wb-tech-level-0"
-Nats:
-  Host: "localhost"
-  Port: "4223"
-  Cluster: "test-cluster"
-  Client: "test"
-  Topic: "model"
+databaseDSN: "postgres://postgres:postgres@localhost:5432/wb-tech-level-0?sslmode=disable"
+
+nats:
+  host: "localhost"
+  port: "4222"
+  cluster: "test-cluster"
+  client: "test"
+  topic: "model"

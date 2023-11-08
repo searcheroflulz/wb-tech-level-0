@@ -38,8 +38,7 @@ CREATE TABLE payment (
 );
 
 CREATE TABLE order_items (
-    order_uid VARCHAR PRIMARY KEY,
-    chrt_id INT,
+    chrt_id INT UNIQUE PRIMARY KEY ,
     track_number VARCHAR,
     price INT,
     rid VARCHAR,
@@ -50,7 +49,7 @@ CREATE TABLE order_items (
     nm_id INT,
     brand VARCHAR,
     status INT,
-    FOREIGN KEY (order_uid) REFERENCES orders(order_uid)
+    FOREIGN KEY (track_number) REFERENCES orders(track_number)
 );
 -- +goose StatementEnd
 
