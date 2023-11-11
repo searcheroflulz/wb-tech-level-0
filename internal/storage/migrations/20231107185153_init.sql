@@ -1,8 +1,8 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE orders (
-    order_uid VARCHAR PRIMARY KEY,
-    track_number VARCHAR,
+    order_uid VARCHAR UNIQUE PRIMARY KEY,
+    track_number VARCHAR UNIQUE,
     entry VARCHAR,
     locale VARCHAR,
     customer_id VARCHAR,

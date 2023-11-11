@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"wb-tech-level-0/internal/config"
 	"wb-tech-level-0/internal/nats"
+	storage "wb-tech-level-0/internal/storage/postgres"
 )
 
 func main() {
@@ -37,10 +42,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
-	_, err = nats.NewNats(cfg)
+	postgres := storage.NewPostgres(db)
+
+	natsStream, err := nats.NewNats(cfg, postgres, ctx)
 	if err != nil {
 		panic(err)
 	}
+	defer func(natsStream *nats.Nats) {
+		err := natsStream.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(natsStream)
 
+	select {}
 }
