@@ -12,7 +12,7 @@ import (
 
 type Nats struct {
 	config         *config.Config
-	StanConnection stan.Conn
+	stanConnection stan.Conn
 	postgres       *storage.Postgres
 	ctx            context.Context
 }
@@ -27,7 +27,7 @@ func NewNats(cfg *config.Config, postgres *storage.Postgres, ctx context.Context
 }
 
 func (n *Nats) Close() error {
-	err := n.StanConnection.Close()
+	err := n.stanConnection.Close()
 	if err != nil {
 		return err
 	}
@@ -36,9 +36,9 @@ func (n *Nats) Close() error {
 }
 
 func (n *Nats) Subscribe() error {
-	_, err := n.StanConnection.Subscribe(n.config.Nats.Topic, n.handleMessage)
+	_, err := n.stanConnection.Subscribe(n.config.Nats.Topic, n.handleMessage)
 	if err != nil {
-		log.Print(err)
+		return err
 	}
 
 	return nil
@@ -57,5 +57,19 @@ func (n *Nats) handleMessage(msg *stan.Msg) {
 		log.Printf("Ошибка вставки данных в базу данных: %v", err)
 		return
 	}
+	log.Print("принял заказ и отправил в базу данных")
+}
 
+func (n *Nats) Publish(order *model.Order) error {
+	marshal, err := json.Marshal(order)
+	if err != nil {
+		return err
+	}
+
+	err = n.stanConnection.Publish(n.config.Nats.Topic, marshal)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

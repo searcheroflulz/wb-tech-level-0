@@ -9,7 +9,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 	"wb-tech-level-0/internal/config"
+	"wb-tech-level-0/internal/generator"
 	"wb-tech-level-0/internal/nats"
 	storage "wb-tech-level-0/internal/storage/postgres"
 )
@@ -58,5 +60,37 @@ func main() {
 		}
 	}(natsStream)
 
-	select {}
+	gnrt := generator.NewGenerator()
+
+	go func() {
+		for {
+			order := gnrt.GenerateOrder()
+			err := natsStream.Publish(order)
+			if err != nil {
+				return
+			}
+			log.Print("отправил сгенерированный заказ")
+
+			time.Sleep(30 * time.Second)
+		}
+	}()
+
+	go func() {
+		err := natsStream.Subscribe()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			log.Print("завершение работы")
+			return
+		}
+	}
 }
