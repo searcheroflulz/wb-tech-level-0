@@ -7,6 +7,7 @@ import (
 	"log"
 	"wb-tech-level-0/internal/config"
 	"wb-tech-level-0/internal/model"
+	"wb-tech-level-0/internal/storage/cache"
 	storage "wb-tech-level-0/internal/storage/postgres"
 )
 
@@ -15,15 +16,16 @@ type Nats struct {
 	stanConnection stan.Conn
 	postgres       *storage.Postgres
 	ctx            context.Context
+	cache          *cache.Cache
 }
 
-func NewNats(cfg *config.Config, postgres *storage.Postgres, ctx context.Context) (*Nats, error) {
+func NewNats(cfg *config.Config, postgres *storage.Postgres, ctx context.Context, cache *cache.Cache) (*Nats, error) {
 	sc, err := stan.Connect(cfg.Nats.Cluster, cfg.Nats.Client)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Nats{cfg, sc, postgres, ctx}, nil
+	return &Nats{cfg, sc, postgres, ctx, cache}, nil
 }
 
 func (n *Nats) Close() error {

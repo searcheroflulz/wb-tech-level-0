@@ -61,7 +61,7 @@ func (g *Generator) GenerateOrder() *model.Order {
 			Currency:     "USD",
 			Provider:     "wbpay",
 			Amount:       rand.Intn(2000),
-			PaymentDate:  time.Now(),
+			PaymentDate:  int(time.Now().Unix()),
 			Bank:         "alpha",
 			DeliveryCost: rand.Intn(1000),
 			GoodsTotal:   rand.Intn(500),

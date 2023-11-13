@@ -139,3 +139,62 @@ func (p *Postgres) addOrderItem(ctx context.Context, item model.OrderItem) error
 	}
 	return nil
 }
+
+func (p *Postgres) Orders(ctx context.Context) ([]model.Order, error) {
+	conn, err := p.db.Connx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	orders := make([]model.Order, 1)
+
+	if err := conn.SelectContext(ctx, &orders, `SELECT * FROM orders`); err != nil {
+		return nil, err
+	}
+
+	if len(orders) == 0 {
+		return nil, nil
+	}
+
+	for i := range orders {
+		err = p.delivery(ctx, &orders[i].Delivery, conn, orders[i].OrderUID)
+		if err != nil {
+			return nil, err
+		}
+		err = p.payment(ctx, &orders[i].Payment, conn, orders[i].OrderUID)
+		if err != nil {
+			return nil, err
+		}
+		err = p.items(ctx, &orders[i].OrderItems, conn, orders[i].TrackNumber)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return orders, nil
+}
+
+func (p *Postgres) delivery(ctx context.Context, delivery *model.Delivery, conn *sqlx.Conn, id string) error {
+	if err := conn.GetContext(ctx, delivery, `SELECT * FROM delivery WHERE order_uid = $1`, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Postgres) payment(ctx context.Context, payment *model.Payment, conn *sqlx.Conn, id string) error {
+	if err := conn.GetContext(ctx, payment, `SELECT * FROM payment WHERE order_uid = $1`, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *Postgres) items(ctx context.Context, items *[]model.OrderItem, conn *sqlx.Conn, id string) error {
+	if err := conn.SelectContext(ctx, items, `SELECT * FROM order_items WHERE track_number = $1`, id); err != nil {
+		return err
+	}
+
+	return nil
+}

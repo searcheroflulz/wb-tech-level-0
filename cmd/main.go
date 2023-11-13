@@ -13,6 +13,7 @@ import (
 	"wb-tech-level-0/internal/config"
 	"wb-tech-level-0/internal/generator"
 	"wb-tech-level-0/internal/nats"
+	"wb-tech-level-0/internal/storage/cache"
 	storage "wb-tech-level-0/internal/storage/postgres"
 )
 
@@ -49,7 +50,9 @@ func main() {
 
 	postgres := storage.NewPostgres(db)
 
-	natsStream, err := nats.NewNats(cfg, postgres, ctx)
+	cache := cache.NewCache(postgres)
+
+	natsStream, err := nats.NewNats(cfg, postgres, ctx, cache)
 	if err != nil {
 		panic(err)
 	}

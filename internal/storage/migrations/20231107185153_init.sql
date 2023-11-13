@@ -5,7 +5,11 @@ CREATE TABLE orders (
     track_number VARCHAR UNIQUE,
     entry VARCHAR,
     locale VARCHAR,
+    internal_signature VARCHAR,
     customer_id VARCHAR,
+    delivery_service VARCHAR,
+    shardkey VARCHAR,
+    sm_id INT,
     date_created TIMESTAMP,
     oof_shard VARCHAR
 );
@@ -29,7 +33,7 @@ CREATE TABLE payment (
     currency VARCHAR,
     provider VARCHAR,
     amount INT,
-    payment_dt TIMESTAMP,
+    payment_dt INT,
     bank VARCHAR,
     delivery_cost INT,
     goods_total INT,
