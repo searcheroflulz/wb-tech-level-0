@@ -50,7 +50,7 @@ func main() {
 
 	postgres := storage.NewPostgres(db)
 
-	cache := cache.NewCache(postgres)
+	cache := cache.NewCache(postgres, ctx)
 
 	natsStream, err := nats.NewNats(cfg, postgres, ctx, cache)
 	if err != nil {
