@@ -60,6 +60,7 @@ func (n *Nats) handleMessage(msg *stan.Msg) {
 		log.Printf("Ошибка вставки данных в базу данных: %v", err)
 		return
 	}
+	go n.cache.AddOrder(result)
 	log.Println("принял заказ и отправил в базу данных")
 }
 
