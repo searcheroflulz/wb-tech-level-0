@@ -41,7 +41,6 @@ func TestGettingAll(t *testing.T) {
 
 	for _, order := range orders {
 		jsonString, _ := json.Marshal(order)
-
 		fmt.Println(string(jsonString))
 	}
 

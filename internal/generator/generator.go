@@ -18,19 +18,19 @@ func (g *Generator) GenerateOrder() *model.Order {
 	// Генерация случайных данных
 	orderUID := fmt.Sprintf("b563feb7b2b84b6test%d", rand.Intn(1000))
 	trackNumber := fmt.Sprintf("WBILMTESTTRACK%d", rand.Intn(1000))
-	// Генерация случайного числа элементов в слайсе OrderItems
+	// Генерация случайного числа элементов в слайсе Items
 	numOrderItems := rand.Intn(5) + 1 // Минимум 1 элемент
-	orderItems := make([]model.OrderItem, numOrderItems)
+	orderItems := make([]model.Items, numOrderItems)
 
 	for i := 0; i < numOrderItems; i++ {
-		orderItems[i] = model.OrderItem{
+		orderItems[i] = model.Items{
 			ChrtID:      rand.Intn(1000000),
 			TrackNumber: trackNumber,
 			Price:       rand.Intn(500),
 			RID:         fmt.Sprintf("rid%d", rand.Intn(1000)),
 			Name:        "Mascaras",
 			Sale:        rand.Intn(50),
-			Size:        "0",
+			Size:        fmt.Sprintf("%d", rand.Intn(45)),
 			TotalPrice:  rand.Intn(500),
 			NMID:        rand.Intn(1000000),
 			Brand:       "Vivienne Sabo",
@@ -39,13 +39,17 @@ func (g *Generator) GenerateOrder() *model.Order {
 	}
 
 	return &model.Order{
-		OrderUID:    orderUID,
-		TrackNumber: trackNumber,
-		Entry:       "WBIL",
-		Locale:      "en",
-		CustomerID:  "test",
-		DateCreated: time.Now(),
-		OofShard:    fmt.Sprintf("%d", rand.Intn(5)),
+		OrderUID:          orderUID,
+		TrackNumber:       trackNumber,
+		Entry:             "WBIL",
+		Locale:            "en",
+		InternalSignature: "",
+		CustomerID:        "test",
+		DeliveryService:   "meest",
+		Shardkey:          fmt.Sprintf("%d", rand.Intn(9)),
+		SmID:              rand.Intn(99),
+		DateCreated:       time.Now(),
+		OofShard:          fmt.Sprintf("%d", rand.Intn(5)),
 		Delivery: model.Delivery{
 			Name:    "Test Testov",
 			Phone:   fmt.Sprintf("+972%09d", rand.Intn(1000000000)),
@@ -67,6 +71,6 @@ func (g *Generator) GenerateOrder() *model.Order {
 			GoodsTotal:   rand.Intn(500),
 			CustomFee:    0,
 		},
-		OrderItems: orderItems,
+		Items: orderItems,
 	}
 }

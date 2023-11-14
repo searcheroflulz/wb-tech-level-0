@@ -37,13 +37,14 @@ func (n *Nats) Close() error {
 	return nil
 }
 
-func (n *Nats) Subscribe() error {
+func (n *Nats) Subscribe() {
 	_, err := n.stanConnection.Subscribe(n.config.Nats.Topic, n.handleMessage)
 	if err != nil {
-		return err
+		log.Println(err)
+		log.Println("перезапускаем подписку")
+		n.Subscribe()
 	}
 
-	return nil
 }
 
 func (n *Nats) handleMessage(msg *stan.Msg) {
@@ -59,7 +60,7 @@ func (n *Nats) handleMessage(msg *stan.Msg) {
 		log.Printf("Ошибка вставки данных в базу данных: %v", err)
 		return
 	}
-	log.Print("принял заказ и отправил в базу данных")
+	log.Println("принял заказ и отправил в базу данных")
 }
 
 func (n *Nats) Publish(order *model.Order) error {

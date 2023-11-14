@@ -72,18 +72,13 @@ func main() {
 			if err != nil {
 				return
 			}
-			log.Print("отправил сгенерированный заказ")
+			log.Println("отправил сгенерированный заказ")
 
-			time.Sleep(30 * time.Second)
+			time.Sleep(15 * time.Second)
 		}
 	}()
 
-	go func() {
-		err := natsStream.Subscribe()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
+	go natsStream.Subscribe()
 
 	if err != nil {
 		log.Println(err)

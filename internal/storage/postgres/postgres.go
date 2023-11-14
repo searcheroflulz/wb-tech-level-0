@@ -22,14 +22,18 @@ func (p *Postgres) AddOrder(ctx context.Context, order model.Order) error {
 	defer conn.Close()
 
 	_, err = conn.ExecContext(ctx,
-		`INSERT INTO orders (order_uid, track_number, entry, locale, customer_id, date_created, oof_shard)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		`INSERT INTO orders (order_uid, track_number, entry, locale, internal_signature, customer_id, delivery_service, shardkey, sm_id, date_created, oof_shard)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		ON CONFLICT (order_uid) DO NOTHING`,
 		order.OrderUID,
 		order.TrackNumber,
 		order.Entry,
 		order.Locale,
+		order.InternalSignature,
 		order.CustomerID,
+		order.DeliveryService,
+		order.Shardkey,
+		order.SmID,
 		order.DateCreated,
 		order.OofShard,
 	)
@@ -47,7 +51,7 @@ func (p *Postgres) AddOrder(ctx context.Context, order model.Order) error {
 		return err
 	}
 
-	for _, item := range order.OrderItems {
+	for _, item := range order.Items {
 		err = p.addOrderItem(ctx, item)
 		if err != nil {
 			return err
@@ -112,7 +116,7 @@ func (p *Postgres) addPayment(ctx context.Context, payment model.Payment, orderU
 	return nil
 }
 
-func (p *Postgres) addOrderItem(ctx context.Context, item model.OrderItem) error {
+func (p *Postgres) addOrderItem(ctx context.Context, item model.Items) error {
 	conn, err := p.db.Connx(ctx)
 	if err != nil {
 		return err
@@ -120,7 +124,7 @@ func (p *Postgres) addOrderItem(ctx context.Context, item model.OrderItem) error
 	defer conn.Close()
 
 	_, err = conn.ExecContext(ctx,
-		`INSERT INTO order_items (chrt_id, track_number, price, rid, name, sale, size, total_price, nm_id, brand, status)
+		`INSERT INTO items (chrt_id, track_number, price, rid, name, sale, size, total_price, nm_id, brand, status)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
 		item.ChrtID,
 		item.TrackNumber,
@@ -147,7 +151,7 @@ func (p *Postgres) Orders(ctx context.Context) ([]model.Order, error) {
 	}
 	defer conn.Close()
 
-	orders := make([]model.Order, 1)
+	orders := make([]model.Order, 0)
 
 	if err := conn.SelectContext(ctx, &orders, `SELECT * FROM orders`); err != nil {
 		return nil, err
@@ -166,7 +170,7 @@ func (p *Postgres) Orders(ctx context.Context) ([]model.Order, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = p.items(ctx, &orders[i].OrderItems, conn, orders[i].TrackNumber)
+		err = p.items(ctx, &orders[i].Items, conn, orders[i].TrackNumber)
 		if err != nil {
 			return nil, err
 		}
@@ -176,23 +180,25 @@ func (p *Postgres) Orders(ctx context.Context) ([]model.Order, error) {
 }
 
 func (p *Postgres) delivery(ctx context.Context, delivery *model.Delivery, conn *sqlx.Conn, id string) error {
-	if err := conn.GetContext(ctx, delivery, `SELECT * FROM delivery WHERE order_uid = $1`, id); err != nil {
+	err := conn.QueryRowContext(ctx, "SELECT name, phone, zip, city, address, region, email FROM delivery WHERE order_uid = $1", id).
+		Scan(&delivery.Name, &delivery.Phone, &delivery.Zip, &delivery.City, &delivery.Address, &delivery.Region, &delivery.Email)
+	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (p *Postgres) payment(ctx context.Context, payment *model.Payment, conn *sqlx.Conn, id string) error {
-	if err := conn.GetContext(ctx, payment, `SELECT * FROM payment WHERE order_uid = $1`, id); err != nil {
+	err := conn.QueryRowContext(ctx, "SELECT transaction, request_id, currency, provider, amount, payment_dt, bank, delivery_cost, goods_total, custom_fee FROM payment WHERE order_uid = $1", id).
+		Scan(&payment.Transaction, &payment.RequestID, &payment.Currency, &payment.Provider, &payment.Amount, &payment.PaymentDate, &payment.Bank, &payment.DeliveryCost, &payment.GoodsTotal, &payment.CustomFee)
+	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (p *Postgres) items(ctx context.Context, items *[]model.OrderItem, conn *sqlx.Conn, id string) error {
-	if err := conn.SelectContext(ctx, items, `SELECT * FROM order_items WHERE track_number = $1`, id); err != nil {
+func (p *Postgres) items(ctx context.Context, items *[]model.Items, conn *sqlx.Conn, id string) error {
+	if err := conn.SelectContext(ctx, items, `SELECT * FROM items WHERE track_number = $1`, id); err != nil {
 		return err
 	}
 

@@ -41,7 +41,7 @@ CREATE TABLE payment (
     FOREIGN KEY (order_uid) REFERENCES orders(order_uid)
 );
 
-CREATE TABLE order_items (
+CREATE TABLE items (
     chrt_id INT UNIQUE PRIMARY KEY ,
     track_number VARCHAR,
     price INT,
