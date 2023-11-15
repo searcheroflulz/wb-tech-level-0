@@ -89,7 +89,9 @@ func main() {
 			order := gnrt.GenerateOrder()
 			err := natsStream.Publish(order)
 			if err != nil {
-				return
+				log.Println("не удалось отправить заказ")
+				time.Sleep(10 * time.Second)
+				continue
 			}
 			log.Println("отправил сгенерированный заказ")
 
@@ -99,10 +101,6 @@ func main() {
 
 	go natsStream.Subscribe()
 
-	if err != nil {
-		log.Println(err)
-	}
-
 	for {
 		select {
 		case <-ctx.Done():
@@ -110,5 +108,4 @@ func main() {
 			return
 		}
 	}
-
 }

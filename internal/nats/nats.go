@@ -20,12 +20,21 @@ type Nats struct {
 }
 
 func NewNats(cfg *config.Config, postgres *storage.Postgres, ctx context.Context, cache *cache.Cache) (*Nats, error) {
-	sc, err := stan.Connect(cfg.Nats.Cluster, cfg.Nats.Client)
+	sc, err := stan.Connect(cfg.Nats.Cluster, cfg.Nats.Client,
+		stan.Pings(10, 5),
+		stan.SetConnectionLostHandler(func(_ stan.Conn, reason error) {
+			log.Fatalf("Connection lost, reason: %v", reason)
+		}))
 	if err != nil {
 		return nil, err
 	}
 
-	return &Nats{cfg, sc, postgres, ctx, cache}, nil
+	return &Nats{
+		config:         cfg,
+		stanConnection: sc,
+		postgres:       postgres,
+		ctx:            ctx,
+		cache:          cache}, nil
 }
 
 func (n *Nats) Close() error {
@@ -38,13 +47,12 @@ func (n *Nats) Close() error {
 }
 
 func (n *Nats) Subscribe() {
-	_, err := n.stanConnection.Subscribe(n.config.Nats.Topic, n.handleMessage, stan.DurableName("my-durable"))
+	_, err := n.stanConnection.Subscribe(n.config.Nats.Topic, n.handleMessage,
+		stan.DurableName("my-durable"))
+
 	if err != nil {
 		log.Println(err)
-		log.Println("перезапускаем подписку")
-		n.Subscribe()
 	}
-
 }
 
 func (n *Nats) handleMessage(msg *stan.Msg) {
@@ -53,8 +61,12 @@ func (n *Nats) handleMessage(msg *stan.Msg) {
 	err := json.Unmarshal(msg.Data, &result)
 	if err != nil {
 		log.Println(err)
+		return
 	}
-
+	if result.OrderUID == "" {
+		log.Println("некорректное значение из канала")
+		return
+	}
 	err = n.postgres.AddOrder(n.ctx, result)
 	if err != nil {
 		log.Printf("Ошибка вставки данных в базу данных: %v", err)
