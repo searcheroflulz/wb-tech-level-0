@@ -38,7 +38,7 @@ func (n *Nats) Close() error {
 }
 
 func (n *Nats) Subscribe() {
-	_, err := n.stanConnection.Subscribe(n.config.Nats.Topic, n.handleMessage)
+	_, err := n.stanConnection.Subscribe(n.config.Nats.Topic, n.handleMessage, stan.DurableName("my-durable"))
 	if err != nil {
 		log.Println(err)
 		log.Println("перезапускаем подписку")

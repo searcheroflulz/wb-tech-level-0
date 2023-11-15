@@ -93,7 +93,7 @@ func main() {
 			}
 			log.Println("отправил сгенерированный заказ")
 
-			time.Sleep(15 * time.Minute)
+			time.Sleep(15 * time.Second)
 		}
 	}()
 

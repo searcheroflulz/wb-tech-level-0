@@ -38,7 +38,6 @@ func (c *Cache) GetOrder(id string) (*model.Order, bool) {
 	defer c.RUnlock()
 	item, found := c.items[id]
 
-	// ключ не найден
 	if !found {
 		return nil, false
 	}
