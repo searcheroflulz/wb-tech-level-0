@@ -2,16 +2,20 @@ package main
 
 import (
 	"context"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 	"wb-tech-level-0/internal/config"
 	"wb-tech-level-0/internal/generator"
+	"wb-tech-level-0/internal/http-server/handlers"
 	"wb-tech-level-0/internal/nats"
 	"wb-tech-level-0/internal/storage/cache"
 	storage "wb-tech-level-0/internal/storage/postgres"
@@ -52,6 +56,21 @@ func main() {
 
 	cache := cache.NewCache(postgres, ctx)
 
+	router := chi.NewRouter()
+
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
+	router.Get("/", handlers.NewIndex())
+	router.Get("/orders/{orderID}", handlers.NewGetOrder(cache))
+
+	go func() {
+		err := http.ListenAndServe(":8080", router)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	natsStream, err := nats.NewNats(cfg, postgres, ctx, cache)
 	if err != nil {
 		panic(err)
@@ -74,7 +93,7 @@ func main() {
 			}
 			log.Println("отправил сгенерированный заказ")
 
-			time.Sleep(15 * time.Second)
+			time.Sleep(15 * time.Minute)
 		}
 	}()
 
@@ -91,4 +110,5 @@ func main() {
 			return
 		}
 	}
+
 }
