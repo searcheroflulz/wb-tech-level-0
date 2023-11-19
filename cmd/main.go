@@ -12,9 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 	"wb-tech-level-0/internal/config"
-	"wb-tech-level-0/internal/generator"
 	"wb-tech-level-0/internal/http-server/handlers"
 	"wb-tech-level-0/internal/nats"
 	"wb-tech-level-0/internal/storage/cache"
@@ -82,22 +80,23 @@ func main() {
 		}
 	}(natsStream)
 
-	gnrt := generator.NewGenerator()
+	//генерация случайных заказов
+	/*	gnrt := generator.NewGenerator()
 
-	go func() {
-		for {
-			order := gnrt.GenerateOrder()
-			err := natsStream.Publish(order)
-			if err != nil {
-				log.Println("не удалось отправить заказ")
-				time.Sleep(10 * time.Second)
-				continue
+		go func() {
+			for {
+				order := gnrt.GenerateOrder()
+				err := natsStream.Publish(order)
+				if err != nil {
+					log.Println("не удалось отправить заказ")
+					time.Sleep(10 * time.Second)
+					continue
+				}
+				log.Println("отправил сгенерированный заказ")
+
+				time.Sleep(15 * time.Second)
 			}
-			log.Println("отправил сгенерированный заказ")
-
-			time.Sleep(15 * time.Second)
-		}
-	}()
+		}()*/
 
 	go natsStream.Subscribe()
 

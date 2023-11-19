@@ -53,6 +53,7 @@ func (n *Nats) Subscribe() {
 	if err != nil {
 		log.Println(err)
 	}
+	log.Println("подключился к nats-streaming")
 }
 
 func (n *Nats) handleMessage(msg *stan.Msg) {
